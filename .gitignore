@@ -1,0 +1,12 @@
+# Build outputs
+build/
+*.apk
+*.idsig
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+Thumbs.db
