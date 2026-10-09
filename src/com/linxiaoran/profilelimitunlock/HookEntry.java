@@ -1,4 +1,4 @@
-package com.agent.profilelimitunlock;
+package com.linxiaoran.profilelimitunlock;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -8,7 +8,7 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class HookEntry implements IXposedHookLoadPackage {
-    static final String PKG = "com.agent.profilelimitunlock";
+    static final String PKG = "com.linxiaoran.profilelimitunlock";
     static final String PREFS = "profile_limit";
 
     static final String KEY_PROFILE_LIMIT = "max_profiles_per_parent";
