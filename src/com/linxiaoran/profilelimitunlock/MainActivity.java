@@ -51,8 +51,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSharedPreferences(HookEntry.PREFS, Context.MODE_WORLD_READABLE);
+        // MODE_WORLD_READABLE 在 targetSdk>=24 直接抛 SecurityException（打开即闪退的根因）。
+        // 改为 MODE_PRIVATE + 由 App 自己对偏好文件 chmod 0644，供 XSharedPreferences 读取。
         prefs = getSharedPreferences(HookEntry.PREFS, Context.MODE_PRIVATE);
+        makeWorldReadable();
 
         int pad = dp(20);
         LinearLayout root = new LinearLayout(this);
@@ -172,7 +174,16 @@ public class MainActivity extends Activity {
 
     private void save(Row row, int v) {
         prefs.edit().putInt(row.key, v).apply();
+        makeWorldReadable();
         Toast.makeText(this, row.title + ": " + v + "（已生效）", Toast.LENGTH_SHORT).show();
+    }
+
+    private void makeWorldReadable() {
+        try {
+            java.io.File f = new java.io.File(getDataDir(), "shared_prefs/" + HookEntry.PREFS + ".xml");
+            if (f.exists()) android.system.Os.chmod(f.getAbsolutePath(), 0644);
+        } catch (Throwable ignored) {
+        }
     }
 
     private int dp(int v) {
