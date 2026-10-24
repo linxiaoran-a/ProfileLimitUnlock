@@ -10,7 +10,7 @@ API_JAR=tools/api-82.jar
 
 mkdir -p tools build/classes build/dex
 if [ ! -f "$API_JAR" ]; then
-    curl -sL -o "$API_JAR" \
+    curl -fsSL --retry 3 -o "$API_JAR" \
         "https://maven.aliyun.com/repository/jcenter/de/robv/android/xposed/api/82/api-82.jar"
 fi
 
@@ -23,6 +23,8 @@ SEP=":"
 [ "$(uname -s | cut -c1-5)" = "MINGW" ] && SEP=";"
 
 # Use @argfile so Windows paths with drive letters survive Git Bash/MSYS mangling.
+# 源文件列表动态发现，避免包名调整后路径写死失效（曾导致 javac exit 2）。
+find src -name '*.java' | sort > build/sources.txt
 cat > build/javac_args.txt <<EOF
 -encoding
 UTF-8
@@ -34,15 +36,14 @@ UTF-8
 $AJAR$SEP$API_JAR
 -d
 build/classes
-src/com/agent/profilelimitunlock/HookEntry.java
-src/com/agent/profilelimitunlock/MainActivity.java
 EOF
+cat build/sources.txt >> build/javac_args.txt
 javac @build/javac_args.txt
 
 if [ -f "$BT/d8" ]; then D8=("$BT/d8")
 else D8=(java -cp "$BT/lib/d8.jar" com.android.tools.r8.D8); fi
 "${D8[@]}" --release --min-api 21 --lib "$AJAR" --classpath "$API_JAR" \
-    --output build/dex build/classes/com/agent/profilelimitunlock/*.class
+    --output build/dex $(find build/classes -name "*.class" | sort)
 
 cp build/unsigned.apk build/withdex.apk
 python3 - <<'EOF'
